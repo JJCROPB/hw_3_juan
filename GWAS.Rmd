@@ -13,26 +13,26 @@ knitr::opts_knit$set(root.dir=normalizePath(''))
 ```
 
 ```{bash, eval=FALSE}
-# Genotypic data manipulation
 ####first###
-mkdir largedata
-cp -r data/RiceDiversity_44K_Genotypes_PLINK largedata/
+# Genotypic data manipulation
+mkdir ldata
+cp -r data/RiceDiversity_44K_Genotypes_PLINK ldata/
 
 module load plink/1.90
 # convert it to binary file
-cd largedata/RiceDiversity_44K_Genotypes_PLINK
+cd ldata/RiceDiversity_44K_Genotypes_PLINK
 plink --file sativas413 --make-bed --out binary_sativas413
 ```
 
 ```{bash, eval=FALSE}
-### Calculating MAF and missingness uning plink
 ####second###
+### Calculating MAF and missingness uning plink
 plink -bfile binary_sativas413 --freq --missing --out sativas413
 
 # copy results back to cache folder!
 cd ../../
-cp largedata/RiceDiversity_44K_Genotypes_PLINK/sativas413.frq cache/
-cp largedata/RiceDiversity_44K_Genotypes_PLINK/sativas413.lmiss cache/
+cp ldata/RiceDiversity_44K_Genotypes_PLINK/sativas413.frq cache/
+cp ldata/RiceDiversity_44K_Genotypes_PLINK/sativas413.lmiss cache/
 ```
 
 ```{bash, eval=FALSE}
@@ -43,8 +43,8 @@ git push
 ```
 
 ```{r, eval=FALSE}
-#to visualize MAF and missing rate
 ####fourth in local###
+#to visualize MAF and missing rate
 # install.packages("data.table")
 library("data.table")
 
@@ -64,58 +64,21 @@ hist(lmiss$F_MISS, breaks=35, col="#cdb79e", main="Missingness (SNP = 36,901)", 
 dev.off()
 ```
 
-# LD Decay
-
-Linkage disequilibrium (LD) refers to the nonrandom associations of alleles at different loci. 
-- The decay of LD is affected by recombination rate and the number of generations of recombination. Therefore, investigating LD decay may reveal the population recombination history.
-- For GWAS, it helps to estimate the number of markers needed.
-
---
-
-### using PLINK to compute LD
-
-- With `--r2`, when a table format report is requested, pairs with r2 values less than 0.2 are normally filtered out of the report. 
-
-- Use `--ld-window-r2` to adjust this threshold.
-
----
-
-# LD Decay
-
-- Using HCC to conduct the analysis
-
 ```{bash, eval=FALSE}
-### log onto HCC
-ssh YOUR_USER_ID@crane.unl.edu
-# Enter your passcode
-
-### request computing node
-srun --qos=short --nodes=1 --licenses=common --ntasks=4 --mem 32G --time 6:00:00 --pty bash
-# cd to your project repo
-# git pull
-```
-
-- Load the `PLINK` module
-
-```{bash, eval=FALSE}
+####FIVE###
+#LD decay
 module load plink
-cd largedata/RiceDiversity_44K_Genotypes_PLINK/
-
-# By default, when a limited window report is requested, 
-# every pair of variants with at least (10-1) variants between them, 
-# or more than 1000 kilobases apart, is ignored. 
-# You can change the first threshold with `--ld-window`, and the second threshold with `--ld-window-kb`.
+cd ldata/RiceDiversity_44K_Genotypes_PLINK/
 plink -bfile binary_sativas413 --r2 --ld-window 100 --ld-window-kb 100 --ld-window-r2 0 --out binary_sativas413 
 ```
 
----
-
-# Summarize LD decay rate
 
 ```{r, eval=FALSE}
+#in local##
+# Summarize LD decay rate IN r
 library("data.table")
 # cd back to your project home dir
-df <- fread("largedata/RiceDiversity_44K_Genotypes_PLINK/binary_sativas413.ld", data.table=FALSE)
+df <- fread("ldata/RiceDiversity_44K_Genotypes_PLINK/binary_sativas413.ld", data.table=FALSE)
 
 BINSIZE = 100
 df$dist <- df$BP_B - df$BP_A
@@ -127,15 +90,8 @@ df2 <- ddply(df, .(bin), summarise,
       meanr2 = mean(R2))
 
 write.table(df2, "cache/ld_in_100bp_bin.csv", sep=",", row.names=FALSE, quote=FALSE)
-```
 
----
-
-### Plot LD decay results
-
-- Plot the figure and sync the figure through github
-
-```{r, eval=FALSE}
+### Plot LD decay results AND SYNC TH GITHUB
 ld <- read.csv("cache/ld_in_100bp_bin.csv")
 
 pdf("graphs/ld_decay.pdf", width=10, height=10)
@@ -145,66 +101,39 @@ dev.off()
 
 ```
 
---
-
-- Sync the results through github and plot the figure on local computer, git push and git pull in local
-
-```{r, eval=FALSE}
-ld <- read.csv("cache/ld_in_100bp_bin.csv")
-
-plot(ld$bin*100, ld$meanr2, xlab="Physical distance (bp)", ylab="R2", main="LD decay rate in rice")
-abline(h=0.3, col="red")
-```
-
----
-
-# Population structure using PCA
-
-PCA (principal component analysis) is a method often used to compress the high dimensional data without losing as much information.
-
-Basically, it creates linear combinations of the columns of matrix information, $\mathbf{X}$, and generates, at most, $p$ linear combinations, called principal components.
-
-\begin{align*}
-PC_1 = \mathbf{w_1X} \\
-PC_2 = \mathbf{w_2X} \\
-PC_p = \mathbf{w_pX} \\
-\end{align*}
-Here, $\mathbf{w_p}$ is the __eigenvector__ of $PC_p$.
-
-The first PC, or PC1, captures the largest variance, the 2nd PC, or PC2, captures the 2nd largest variance, and so on.
-
-
----
-
-# PCA using PLINK
-
-- By default, `--pca` extracts the top 20 principal components; you can change the number by passing a numeric parameter. 
-- Eigenvectors are written to `plink.eigenvec`, and top eigenvalues are written to `plink.eigenval`. 
-- The 'header' modifier adds a header line to the `.eigenvec` file(s).
-
 ```{bash, eval=FALSE}
-cd largedata/RiceDiversity_44K_Genotypes_PLINK
+####six###
+# Population structure using PCA
+cd ldata/RiceDiversity_44K_Genotypes_PLINK
 plink -bfile binary_sativas413 --pca 'header' --out sativas413 
 cd ../../
-cp largedata/RiceDiversity_44K_Genotypes_PLINK/sativas413.eigenvec cache/
+cp ldata/RiceDiversity_44K_Genotypes_PLINK/sativas413.eigenvec cache/
 ```
 
----
-
-# PCA using PLINK
-
-### Plot the PCA results in R
-
 ```{r, eval=FALSE}
+#local#
+# PCA using PLINK
+### Plotting the PCA results in R
+
 pca <- read.table("cache/sativas413.eigenvec", header=TRUE)
+
+
+pdf("graphs/PCA.pdf", width=10, height=10)
+
 plot(pca$PC1, pca$PC2, xlab="PC1", ylab="PC2")
 plot(pca$PC3, pca$PC4, xlab="PC3", ylab="PC4")
+plot(pca$PC5, pca$PC6, xlab="PC5", ylab="PC6")
+plot(pca$PC7, pca$PC8, xlab="PC7", ylab="PC8")
+plot(pca$PC9, pca$PC10, xlab="PC9", ylab="PC10")
+
+dev.off()
 ```
 
 
 ```{r, eval=FALSE}
-#making a plot in R for the PCA
-# install.packages("scatterplot3d")
+#in local##
+#making a plot in R for the PCA 1,2,3
+
 library("scatterplot3d")
 
 fsize=16
@@ -213,36 +142,14 @@ scatterplot3d(pca[,3:5], pch = 16, cex.symbol=1.2, color="#00BFC4", main="Maize 
 dev.off()
 ```
 
-
----
-
-# GWAS using the `gemma` software package
-
-### Fit the QK model
-
-\begin{align*}
-\mathbf{y} &= \mathbf{Qv} + \mathbf{w_i}m_i + \mathbf{Zu} + \mathbf{e} \\
-\end{align*}
-
-
-```{bash, eval=FALSE}
-module load gemma
-# To calculate centered relatedness matrix (will take ~ 1 min):
-gemma -bfile binary_sativas413 -gk 1 -o binary_sativas413
-```
-
---
-
--9 Phenotype doesn't go well with `gemma`. We have to change a little bit.
-
----
-
-# GWAS using the `gemma` software package
-
-### Fit the QK model
-
 ```{r, eval=FALSE}
-#Using R to fit the QK model
+####seven###
+# GWAS using the `gemma` software package
+### Fit the QK model
+
+#Using R to fit the QK model in HCC
+module load R
+R
 library("data.table")
 
 ped <- fread("sativas413.ped", header=FALSE)
@@ -257,114 +164,103 @@ fwrite(fam, "sativas413.fam", sep="\t", row.names=FALSE, col.names = FALSE, quot
 --
 
 ```{bash, eval=FALSE}
-module plink
+####eight###
+module load plink
 plink --file sativas413 --make-bed --out binary_sativas413
 # To calculate centered relatedness matrix (will take ~ 1 min): Creating the GK matrix
+module load gemma
 gemma -bfile binary_sativas413 -gk 1 -o binary_sativas413
-```
 
-
-```{r, eval=FALSE}
 #Checking the data
+module load R
+R
 library("data.table")
-k <- fread("largedata/RiceDiversity_44K_Genotypes_PLINK/output/binary_sativas413.cXX.txt", header=FALSE)
+k <- fread("output/binary_sativas413.cXX.txt", header=FALSE)
 dim(k)
-```
-
----
-
-# GWAS using the gemma software package
-
-### Q matrix
-If one has covariates other than the intercept and wants to adjust for those covariates simultaneously, one should provide `GEMMA` with a covariates file containing an intercept term explicitly.
-> from Gemma manual
+#it result in 413 413
+#q()
 
 ```
-1 1 -1.5
-1 2 0.3
-1 2 0.6
-1 1 -0.8
-1 1 2.0
-```
-
---
 
 ```{r, eval=FALSE}
-#Creating the matrix for PCA as covariate
-# cd to largedata/RiceDiversity_44K_Genotypes_PLINK
+####NINE###
+# GWAS using the gemma software package
+### Q matrix
+#Creating the Q matrix for PCA as co variate
+# cd to ldata/RiceDiversity_44K_Genotypes_PLINK
+module load R
+R
+
 pca <- read.table("sativas413.eigenvec", header=TRUE)
 pca[,2] <- 1
 write.table(pca[,2:5], "pc3.txt", sep="\t", row.names=FALSE, 
             quote=FALSE, col.names = FALSE)
+
+#q() to close
 ```
 
----
-
-# Phenotypic data
-
 ```{r fig.height=5, fig.width=5, message=FALSE, warning=FALSE, eval=FALSE}
+# Phenotypic data
+##local###
 pheno <- read.delim("http://ricediversity.org/data/sets/44kgwas/RiceDiversity_44K_Phenotypes_34traits_PLINK.txt", header=TRUE)
 
 library(ggplot2)
 #Here you can replace x= for the trait you want to visualize in GWAS
-ggplot(pheno, aes(x=Plant.height)) + 
+
+pdf("graphs/histogram_panicle.pdf", width=10, height=10)
+
+ggplot(pheno, aes(x=Panicle.length)) + 
   geom_histogram(aes(y=..density..), bins=50, fill="#999999")+
   geom_density(alpha=.2, fill="#FF6666") +
   labs(title="Phenotype histogram plot",x="Plant Height", y = "Density")+
   theme_classic()
 
+dev.off()
 ```
 
---
-
-- On HCC, write the `pheno.txt` to the genotypic data folder
-
 ```{r, eval=FALSE}
+
+####TEN###
+#writing the pheno.txt to the genotypic data folder on HCC
+module loar R
+R
+
+
 pheno <- read.delim("http://ricediversity.org/data/sets/44kgwas/RiceDiversity_44K_Phenotypes_34traits_PLINK.txt", header=TRUE)
-write.table(pheno[, -1:-2], "largedata/RiceDiversity_44K_Genotypes_PLINK/pheno.txt", 
+write.table(pheno[, -1:-2], "pheno.txt", 
             sep="\t", row.names=FALSE, quote=FALSE, col.names = FALSE)
 dim(pheno)
+#IT SHOULD BE 413 38
+#q() to close
 ```
-
-
----
-
-# GWAS using the gemma software package
-
-
-\begin{align*}
-\mathbf{y} &= \mathbf{Qv} + \mathbf{w_i}m_i + \mathbf{Zu} + \mathbf{e} \\
-\end{align*}
 
 ```{bash, eval=FALSE}
-
+####elevent###
+# GWAS using the gemma software package
 #here chose -n number of the column you have the trait you want to work with example 13 for panicle.length and -o name of new gwas file panicle.length
-gemma -bfile binary_sativas413 -c pc3.txt -k output/binary_sativas413.cXX.txt -p pheno.txt -lmm 4 -n 12 -o Plant.height -miss 0.9 -r2 1 -hwe 0 -maf 0.05
+module load gemma
 
-cp output/Plant.height.assoc.txt ../../cache
+gemma -bfile binary_sativas413 -c pc3.txt -k output/binary_sativas413.cXX.txt -p pheno.txt -lmm 4 -n 13 -o Plant.length -miss 0.9 -r2 1 -hwe 0 -maf 0.05
+#to save the GWAS file in the cache folder
+cp output/Plant.length.assoc.txt ../../cache
 ```
 
-- `lmm`: specify frequentist analysis choice (default 1; valid value 1-4; 1: Wald test; 2:
-likelihood ratio test; 3: score test; 4: all 1-3.)
-- `n`: specify phenotype column in the phenotype file (default 1); or to specify which
-phenotypes are used in the mvLMM analysis
-- `o`: specify output file prefix
-- `miss`: specify missingness threshold (default 0.05)
-- `r2`: specify r-squared threshold (default 0.9999)
-- `hwe`: specify HWE test p value threshold (default 0; no test)
-- `maf`: specify minor allele frequency threshold (default 0.01)
-
----
-
-# The Manhattan plot
-
-
 ```{r, eval=FALSE}
+####Tuelve###
+# creating The Manhattan plot in desktop because library qqman is not in HCC
+git add --all
+git commit -m "GWAS RESULTS"
+git push
+
 library(qqman)
 library("data.table")
-res <- fread("cache/Plant.height.assoc.txt")
+res <- fread("cache/Plant.length.assoc.txt")
+
+pdf("graphs/manhattan.pdf", width = 10, height=5)
 
 manhattan(x = res, chr = "chr", bp = "ps", p = "p_wald", snp = "rs", col = c("blue4", "orange3"), logp = TRUE)
+
+dev.off()
 ```
 
 
