@@ -1,0 +1,38 @@
+##
+## GEMMA Version    = 0.98.1 (2018-12-10)
+## Build profile    = 
+## GCC version      = 7.3.0
+## GSL Version      = 1.16
+## Eigen Version    = 3.3.7
+## OpenBlas         = OpenBLAS 0.3.6  - OpenBLAS 0.3.6 DYNAMIC_ARCH NO_AFFINITY Sandybridge MAX_THREADS=128
+##   arch           = Sandybridge
+##   threads        = 4
+##   parallel type  = threaded
+##
+## Command Line Input = gemma -bfile binary_sativas413 -c pc3.txt -k output/binary_sativas413.cXX.txt -p pheno.txt -lmm 4 -n 13 -o Plant.length -miss 0.9 -r2 1 -hwe 0 -maf 0.05 
+##
+## Date = Thu May 19 23:22:57 2022
+##
+## Summary Statistics:
+## number of total individuals = 413
+## number of analyzed individuals = 375
+## number of covariates = 4
+## number of phenotypes = 1
+## number of total SNPs/var = 36901
+## number of analyzed SNPs/var = 34349
+## REMLE log-likelihood in the null model = -891.227
+## MLE log-likelihood in the null model = -905.401
+## pve estimate in the null model = 0.832379
+## se(pve) in the null model = 0.0434371
+## vg estimate in the null model = 22.8729
+## ve estimate in the null model = 3.07986
+## beta estimate in the null model =   24.3634  7.92646  -9.47954  20.9561
+## se(beta) =   0.0982284  50.3077  23.5379  20.614
+##
+## Computation Time:
+## total computation time = 1.27497 min 
+## computation time break down: 
+##      time on eigen-decomposition = 0.00158712 min 
+##      time on calculating UtX = 0.0167787 min 
+##      time on optimization = 1.2211 min 
+##

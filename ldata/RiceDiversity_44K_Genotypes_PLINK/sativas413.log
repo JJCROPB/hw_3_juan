@@ -1,0 +1,25 @@
+PLINK v1.90b4 64-bit (20 Mar 2017)
+Options in effect:
+  --bfile binary_sativas413
+  --out sativas413
+  --pca header
+
+Hostname: c1016.crane.hcc.unl.edu
+Working directory: /home/frelslab/juandj/hw_3_juan/largedata/RiceDiversity_44K_Genotypes_PLINK
+Start time: Thu May 19 22:54:44 2022
+
+Random number seed: 1653018884
+64043 MB RAM detected; reserving 32021 MB for main workspace.
+36901 variants loaded from .bim file.
+413 people (0 males, 0 females, 413 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to sativas413.nosex .
+Using up to 15 threads (change this with --threads).
+Before main variant filters, 413 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.956644.
+36901 variants and 413 people pass filters and QC.
+Note: No phenotypes present.
+Relationship matrix calculation complete.
+--pca: Results saved to sativas413.eigenval and sativas413.eigenvec .
+
+End time: Thu May 19 22:54:45 2022

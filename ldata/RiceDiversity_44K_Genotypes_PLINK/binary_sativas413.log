@@ -1,0 +1,32 @@
+PLINK v1.90b4 64-bit (20 Mar 2017)
+Options in effect:
+  --file sativas413
+  --make-bed
+  --out binary_sativas413
+
+Hostname: c1016.crane.hcc.unl.edu
+Working directory: /home/frelslab/juandj/hw_3_juan/largedata/RiceDiversity_44K_Genotypes_PLINK
+Start time: Thu May 19 23:10:30 2022
+
+Random number seed: 1653019830
+64043 MB RAM detected; reserving 32021 MB for main workspace.
+Scanning .ped file... done.
+Performing single-pass .bed write (36901 variants, 413 people).
+--file: binary_sativas413-temporary.bed + binary_sativas413-temporary.bim +
+binary_sativas413-temporary.fam written.
+36901 variants loaded from .bim file.
+413 people (0 males, 0 females, 413 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to binary_sativas413.nosex .
+413 phenotype values loaded from .fam.
+Warning: Ignoring phenotypes of missing-sex samples.  If you don't want those
+phenotypes to be ignored, use the --allow-no-sex flag.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 413 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.956644.
+36901 variants and 413 people pass filters and QC.
+Among remaining phenotypes, 0 are cases and 413 are controls.
+--make-bed to binary_sativas413.bed + binary_sativas413.bim +
+binary_sativas413.fam ... done.
+
+End time: Thu May 19 23:10:31 2022
